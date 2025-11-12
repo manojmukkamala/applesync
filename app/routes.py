@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from typing import Optional
 import os
 import sys
 
@@ -17,6 +18,9 @@ from db import (
     get_message_by_guid,
     get_messages_by_device_id,
     create_message,
+    get_health_data_by_id,
+    get_health_data_by_device_id,
+    create_health_data
 )
 
 app = FastAPI()
@@ -28,7 +32,7 @@ async def on_startup():
     await init_db()
 
 # Import SQLModel classes to reuse their structure
-from app.models import Message, User, Device
+from app.models import Message, User, Device, HealthData
 
 # Define all routes in a clean, non-circular structure
 
@@ -134,5 +138,52 @@ async def create_message_for_device(device_id: int, message: Message):
             device_id,
         )
         return created_message
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# HealthData endpoints
+@app.get("/health/{health_id}")
+async def get_health_data(health_id: str):
+    try:
+        health_data = await get_health_data_by_id(health_id)
+        if health_data is None:
+            raise HTTPException(status_code=404, detail="Health data not found")
+        return health_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/device/{device_id}/health")
+async def get_health_data_for_device(device_id: int, guid: Optional[str] = None):
+    try:
+        # First check if the device exists
+        device = await get_device_by_id(device_id)
+        if device is None:
+            raise HTTPException(status_code=404, detail="Device not found")
+        
+        health_data = await get_health_data_by_device_id(device_id, guid)
+        return health_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.post("/device/{device_id}/health")
+async def create_health_data_for_device(device_id: int, health_data: HealthData):
+    try:
+        # First check if the device exists
+        device = await get_device_by_id(device_id)
+        if device is None:
+            raise HTTPException(status_code=404, detail="Device not found")
+        
+        created_health_data = await create_health_data(
+            device_id,
+            health_data.name,
+            health_data.source,
+            health_data.duration,
+            health_data.startdate,
+            health_data.enddate,
+            health_data.unit,
+            health_data.value,
+            health_data.type
+        )
+        return created_health_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

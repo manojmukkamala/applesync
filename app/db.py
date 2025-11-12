@@ -1,9 +1,11 @@
 import os
+import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from sqlmodel import select
-from app.models import User, Device, Message
+from app.models import User, Device, Message, HealthData
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+
 
 # Global database path
 DB_PATH = './data/messages.db'
@@ -19,11 +21,12 @@ async def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     
     # Use SQLModel to create tables
-    from app.models import User, Device, Message
+    from app.models import User, Device, Message, HealthData
     async with engine.begin() as conn:
         await conn.run_sync(User.metadata.create_all)
         await conn.run_sync(Device.metadata.create_all)
         await conn.run_sync(Message.metadata.create_all)
+        await conn.run_sync(HealthData.metadata.create_all)
 
 
 # User database functions
@@ -123,3 +126,58 @@ async def create_message(guid: str, conversation_guid: str, conversation_convers
         await session.commit()
         await session.refresh(message)
         return message.model_dump()
+
+
+# HealthData database functions
+async def get_health_data_by_id(health_id: str) -> Optional[Dict[str, Any]]:
+    async with session_local() as session:
+        statement = select(HealthData).where(HealthData.id == health_id)
+        result = await session.execute(statement)
+        health_data = result.scalars().first()
+        return health_data.model_dump() if health_data else None
+
+
+async def get_health_data_by_device_id(device_id: int, guid: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+    async with session_local() as session:
+        if guid:
+            statement = select(HealthData).where(HealthData.device_id == device_id, HealthData.id == guid)
+            result = await session.execute(statement)
+            health_data = result.scalars().first()
+            return health_data.model_dump() if health_data else None
+        else:
+            statement = select(HealthData).where(HealthData.device_id == device_id)
+            result = await session.execute(statement)
+            health_data = result.scalars().all()
+            return [data.model_dump() for data in health_data]
+
+
+async def create_health_data(device_id: int, name: str, source: str, duration: str, startdate: str, enddate: str, unit: str, value: str, type: str) -> Dict[str, Any]:
+    created_at = datetime.now()
+    async with session_local() as session:
+        # Convert string dates to datetime objects
+        startdate_obj = datetime.fromisoformat(startdate.replace('Z', '+00:00'))
+        enddate_obj = datetime.fromisoformat(enddate.replace('Z', '+00:00'))
+        
+        health_data_id = str(uuid.uuid4())
+        
+        health_data = HealthData(
+            id=health_data_id,
+            device_id=device_id,
+            name=name,
+            source=source,
+            duration=duration,
+            startdate=startdate_obj,
+            enddate=enddate_obj,
+            unit=unit,
+            value=value,
+            type=type,
+            created_at=created_at
+        )
+        session.add(health_data)
+        await session.commit()
+        await session.refresh(health_data)
+        # Convert datetime objects back to strings for the response
+        health_data_dict = health_data.model_dump()
+        health_data_dict['startdate'] = health_data.startdate.isoformat()
+        health_data_dict['enddate'] = health_data.enddate.isoformat()
+        return health_data_dict
