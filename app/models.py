@@ -25,3 +25,16 @@ class Message(SQLModel, table=True):
     body: str
     device_id: int = Field(foreign_key="device.device_id")
     created_at: datetime
+
+class HealthData(SQLModel, table=True):
+    id: Optional[str] = Field(default=None, primary_key=True, description="Auto increment UUID primary key")
+    device_id: int = Field(foreign_key="device.device_id")
+    name: str
+    source: str
+    duration: str
+    startdate: datetime
+    enddate: datetime
+    unit: str
+    value: str
+    type: str
+    created_at: datetime
