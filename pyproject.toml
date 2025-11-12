@@ -11,4 +11,7 @@ dependencies = [
     "aiosqlite>=0.18.0",
     "sqlmodel>=0.0.27",
     "greenlet>=3.2.4",
+    "python-jose>=1.7.0",
+    "passlib>=1.7.4",
+    "python-multipart>=0.0.12",
 ]

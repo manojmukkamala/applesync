@@ -1,22 +1,66 @@
-# applesync
-A REST API server to store data (Messages and Health app etc) fetched from Apple devices
+# Apple-Sync API
 
-## Docker Deployment
+A FastAPI-based API for syncing Apple device data.
 
-You can run the application using Docker:
+## Features
 
-```bash
-# Pull the image from GitHub Container Registry
-docker pull ghcr.io/manojmukkamala/applesync:latest
+- User management
+- Device management
+- Message synchronization
+- Health data synchronization
+- JWT-based authentication
 
-# Run the container
-docker run -p 8000:8000 ghcr.io/manojmukkamala/applesync:latest
+## Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Set up environment variables (see .env.example)
+4. Run the application:
+   ```bash
+   python main.py
+   ```
+
+## API Endpoints
+
+### Authentication
+- `POST /login` - Authenticate user and get access token
+
+### Users
+- `GET /user/{user_id}` - Get user by ID
+- `GET /users` - Get all users
+- `POST /user` - Create new user
+
+### Devices
+- `GET /device/{device_id}` - Get device by ID
+- `GET /user/{user_id}/devices` - Get devices for user
+- `POST /user/{user_id}/device` - Create device for user
+
+### Messages
+- `GET /message/{guid}` - Get message by GUID
+- `GET /device/{device_id}/messages` - Get messages for device
+
+### Health Data
+- `GET /health/{health_id}` - Get health data by ID
+- `GET /device/{device_id}/health` - Get health data for device
+- `POST /device/{device_id}/health` - Create health data for device
+
+## Environment Variables
+
+Create a `.env` file with:
+```
+SECRET_KEY=your-super-secret-key-here-change-this-in-production
 ```
 
-The application will be accessible at `http://localhost:8000`.
+## Authentication
 
-FastAPI swagger docs will be accessible at `http://localhost:8000/docs`.
+All endpoints except `/login` require a valid JWT token in the Authorization header:
+```
+Authorization: Bearer <your_token_here>
+```
 
-## CI/CD
+## Database
 
-The application is automatically built and published to GitHub Container Registry on every tagged release on the main branch.
+The application uses SQLite with SQLModel for database operations.
