@@ -23,6 +23,11 @@ async def init_db():
     # Use SQLModel to create tables
     from app.models import User, Device, Message, HealthData
     async with engine.begin() as conn:
+        # Drop existing tables and recreate them to ensure schema is up to date
+        await conn.run_sync(User.metadata.drop_all)
+        await conn.run_sync(Device.metadata.drop_all)
+        await conn.run_sync(Message.metadata.drop_all)
+        await conn.run_sync(HealthData.metadata.drop_all)
         await conn.run_sync(User.metadata.create_all)
         await conn.run_sync(Device.metadata.create_all)
         await conn.run_sync(Message.metadata.create_all)
@@ -46,14 +51,21 @@ async def get_all_users() -> List[Dict[str, Any]]:
         return [user.model_dump() for user in users]
 
 
-async def create_user(user_name: str) -> Dict[str, Any]:
+async def create_user(user_name: str, password: str = None) -> Dict[str, Any]:
     created_at = datetime.now()
     async with session_local() as session:
-        user = User(user_name=user_name, created_at=created_at)
+        # Import here to avoid circular imports
+        from app.auth import get_password_hash
+        # Hash the password if provided
+        hashed_password = get_password_hash(password) if password else None
+        user = User(user_name=user_name, password=hashed_password, created_at=created_at)
         session.add(user)
         await session.commit()
         await session.refresh(user)
-        return user.model_dump()
+        # Remove password from the returned user object for security
+        user_dict = user.model_dump()
+        user_dict.pop("password", None)
+        return user_dict
 
 
 # Device database functions

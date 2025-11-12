@@ -5,6 +5,7 @@ from typing import Optional
 class User(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, primary_key=True)
     user_name: str = Field(unique=True, nullable=False)
+    password: str = Field(default=None)  # Add password field for authentication
     created_at: datetime
 
 class Device(SQLModel, table=True):
