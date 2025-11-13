@@ -64,3 +64,35 @@ Authorization: Bearer <your_token_here>
 ## Database
 
 The application uses SQLite with SQLModel for database operations.
+
+
+Testing Authorization:
+
+1. Initialize DB and create a user
+```bash
+python -m scripts.utils create-user --username admin --password secret_password
+```
+
+2. [optional- I have already put the scret in .env file] Run the API
+```bash
+export SECRET_KEY="$(python - <<'PY'
+import secrets
+print(secrets.token_urlsafe(32))
+PY
+)"
+uvicorn app.routes:app --reload --port 8000
+```
+
+Get a token (login)
+```bash
+curl -s -X POST "http://127.0.0.1:8000/login" \
+   -H "Content-Type: application/x-www-form-urlencoded" \
+   -d "username=admin&password=secret_password"
+```
+
+Call protected endpoints with the token
+```bash
+TOKEN="<paste_access_token_here>"
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/users
+```
+
