@@ -8,14 +8,20 @@ from sqlmodel import select
 from app.db import session_local
 from app.models import User
 import os
+from dotenv import load_dotenv
+
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["sha256_crypt"],  # Use SHA256 instead of bcrypt
+    deprecated="auto"
+)
 
 # OAuth2 scheme for token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # Secret key for JWT - loaded from environment variable
+load_dotenv() # This loads variables from .env into environment
 SECRET_KEY = os.getenv("SECRET_KEY", "your-default-secret-key-here")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
