@@ -1,6 +1,7 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, UniqueConstraint
 from datetime import datetime
 from typing import Optional
+import uuid
 
 class User(SQLModel, table=True):
     user_id: Optional[int] = Field(default=None, primary_key=True)
@@ -27,7 +28,16 @@ class Message(SQLModel, table=True):
     created_at: datetime
 
 class HealthData(SQLModel, table=True):
-    id: Optional[str] = Field(default=None, primary_key=True, description="Auto increment UUID primary key")
+    __table_args__ = (
+        UniqueConstraint("device_id", "unit", "startdate"),
+    )
+
+    id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()),
+        primary_key=True,
+        nullable=False
+    )
+
     device_id: int = Field(foreign_key="device.device_id")
     name: str
     source: str

@@ -21,7 +21,6 @@ async def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     
     # Use SQLModel to create tables
-    from app.models import User, Device, Message, HealthData
     async with engine.begin() as conn:
         await conn.run_sync(User.metadata.create_all)
         await conn.run_sync(Device.metadata.create_all)
