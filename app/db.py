@@ -152,15 +152,42 @@ async def get_health_data_by_device_id(device_id: int, guid: Optional[str] = Non
 
 async def create_health_data(device_id: int, name: str, source: str, duration: str, startdate: str, enddate: str, unit: str, value: str, type: str) -> Dict[str, Any]:
     created_at = datetime.now()
+
     async with session_local() as session:
-        # Convert string dates to datetime objects
-        startdate_obj = datetime.fromisoformat(startdate.replace('Z', '+00:00'))
-        enddate_obj = datetime.fromisoformat(enddate.replace('Z', '+00:00'))
-        
-        health_data_id = str(uuid.uuid4())
-        
-        health_data = HealthData(
-            id=health_data_id,
+
+     # Normalize dates
+     startdate_obj = datetime.fromisoformat(startdate.replace("Z", "+00:00"))
+     enddate_obj = datetime.fromisoformat(enddate.replace("Z", "+00:00"))
+
+    # 1) CHECK IF EXISTS (based on unique constraint)
+    stmt = select(HealthData).where(
+        HealthData.device_id == device_id,
+        HealthData.unit == unit,
+        HealthData.startdate == startdate_obj
+    )
+
+    result = await session.exec(stmt)
+    existing = result.one_or_none()
+
+    # 2) UPDATE IF EXISTS
+    if existing:
+        existing.name = name
+        existing.source = source
+        existing.duration = duration
+        existing.enddate = enddate_obj
+        existing.value = value
+        existing.type = type
+        existing.created_at = created_at
+
+        session.add(existing)
+        await session.commit()
+        await session.refresh(existing)
+
+        hd = existing
+
+    # 3) INSERT NEW IF NOT EXISTS
+    else:
+        hd = HealthData(
             device_id=device_id,
             name=name,
             source=source,
@@ -172,11 +199,13 @@ async def create_health_data(device_id: int, name: str, source: str, duration: s
             type=type,
             created_at=created_at
         )
-        session.add(health_data)
+        session.add(hd)
         await session.commit()
-        await session.refresh(health_data)
-        # Convert datetime objects back to strings for the response
-        health_data_dict = health_data.model_dump()
-        health_data_dict['startdate'] = health_data.startdate.isoformat()
-        health_data_dict['enddate'] = health_data.enddate.isoformat()
-        return health_data_dict
+        await session.refresh(hd)
+
+    # Prepare output
+    data = hd.model_dump()
+    data["startdate"] = hd.startdate.isoformat()
+    data["enddate"] = hd.enddate.isoformat()
+
+    return data
