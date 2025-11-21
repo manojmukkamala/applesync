@@ -166,7 +166,7 @@ async def create_health_data(device_id: int, name: str, source: str, duration: s
         HealthData.startdate == startdate_obj
     )
 
-    result = await session.exec(stmt)
+    result = await session.execute(stmt)
     existing = result.one_or_none()
 
     # 2) UPDATE IF EXISTS
