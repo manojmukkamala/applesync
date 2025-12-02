@@ -15,6 +15,19 @@ engine = create_async_engine(f"sqlite+aiosqlite:///{DB_PATH}", echo=True)
 session_local = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
+def get_db_engine(db_url: Optional[str] = None):
+    """Get database engine, either from environment or default"""
+    if db_url:
+        return create_async_engine(db_url, echo=True)
+    return engine
+
+
+def get_db_session_local(db_url: Optional[str] = None):
+    """Get session maker for database, either from environment or default"""
+    engine = get_db_engine(db_url)
+    return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+
 async def init_db():
     """Initialize the database and create tables if they don't exist"""
     # Create the data directory if it doesn't exist
@@ -162,7 +175,7 @@ async def create_health_data(device_id: int, name: str, source: str, duration: s
     # 1) CHECK IF EXISTS (based on unique constraint)
     stmt = select(HealthData).where(
         HealthData.device_id == device_id,
-        HealthData.unit == unit,
+        HealthData.type == type,
         HealthData.startdate == startdate_obj
     )
 

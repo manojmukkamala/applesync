@@ -29,7 +29,7 @@ class Message(SQLModel, table=True):
 
 class HealthData(SQLModel, table=True):
     __table_args__ = (
-        UniqueConstraint("device_id", "unit", "startdate"),
+        UniqueConstraint("device_id", "type", "startdate"),
     )
 
     id: str = Field(
