@@ -20,7 +20,10 @@ from db import (
     create_message,
     get_health_data_by_id,
     get_health_data_by_device_id,
-    create_health_data
+    create_health_data,
+    get_screen_time_by_id,
+    get_screen_time_by_device_id,
+    create_screen_time
 )
 
 app = FastAPI()
@@ -32,7 +35,7 @@ async def on_startup():
     await init_db()
 
 # Import SQLModel classes to reuse their structure
-from app.models import Message, User, Device, HealthData
+from app.models import Message, User, Device, HealthData, ScreenTime
 
 # Define all routes in a clean, non-circular structure
 
@@ -185,5 +188,49 @@ async def create_health_data_for_device(device_id: int, health_data: HealthData)
             health_data.type
         )
         return created_health_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# ScreenTime endpoints
+@app.get("/screen-time/{screen_time_id}")
+async def get_screen_time(screen_time_id: str):
+    try:
+        screen_time = await get_screen_time_by_id(screen_time_id)
+        if screen_time is None:
+            raise HTTPException(status_code=404, detail="Screen time not found")
+        return screen_time
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/device/{device_id}/screen-time")
+async def get_screen_time_for_device(device_id: int, app: Optional[str] = None):
+    try:
+        # First check if the device exists
+        device = await get_device_by_id(device_id)
+        if device is None:
+            raise HTTPException(status_code=404, detail="Device not found")
+        
+        screen_time = await get_screen_time_by_device_id(device_id, app)
+        return screen_time
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.post("/device/{device_id}/screen-time")
+async def create_screen_time_for_device(device_id: int, screen_time: ScreenTime):
+    try:
+        # First check if the device exists
+        device = await get_device_by_id(device_id)
+        if device is None:
+            raise HTTPException(status_code=404, detail="Device not found")
+        
+        created_screen_time = await create_screen_time(
+            device_id,
+            screen_time.app,
+            screen_time.website,
+            screen_time.duration,
+            screen_time.description,
+            screen_time.activity_date
+        )
+        return created_screen_time
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
