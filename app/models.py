@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, UniqueConstraint
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 import uuid
 
@@ -47,4 +47,23 @@ class HealthData(SQLModel, table=True):
     unit: str
     value: str
     type: str
+    created_at: datetime
+
+class ScreenTime(SQLModel, table=True):
+    __table_args__ = (
+        UniqueConstraint("device_id", "app", "activity_date"),
+    )
+
+    id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()),
+        primary_key=True,
+        nullable=False
+    )
+
+    device_id: int = Field(foreign_key="device.device_id")
+    app: str
+    website: str
+    duration: str
+    description: str
+    activity_date: date
     created_at: datetime

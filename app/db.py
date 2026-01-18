@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from sqlmodel import select
-from app.models import User, Device, Message, HealthData
+from app.models import User, Device, Message, HealthData, ScreenTime
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 
@@ -25,6 +25,7 @@ async def init_db():
         await conn.run_sync(Device.metadata.create_all)
         await conn.run_sync(Message.metadata.create_all)
         await conn.run_sync(HealthData.metadata.create_all)
+        await conn.run_sync(ScreenTime.metadata.create_all)
 
 
 # User database functions
@@ -208,3 +209,52 @@ async def create_health_data(device_id: int, name: str, source: str, duration: s
     data["enddate"] = hd.enddate.isoformat()
 
     return data
+
+
+# ScreenTime database functions
+async def get_screen_time_by_id(screen_time_id: str) -> Optional[Dict[str, Any]]:
+    async with session_local() as session:
+        statement = select(ScreenTime).where(ScreenTime.id == screen_time_id)
+        result = await session.execute(statement)
+        screen_time = result.scalars().first()
+        return screen_time.model_dump() if screen_time else None
+
+
+async def get_screen_time_by_device_id(device_id: int, app: Optional[str] = None) -> List[Dict[str, Any]]:
+    async with session_local() as session:
+        if app:
+            statement = select(ScreenTime).where(ScreenTime.device_id == device_id, ScreenTime.app == app)
+            result = await session.execute(statement)
+            screen_time = result.scalars().first()
+            return screen_time.model_dump() if screen_time else None
+        else:
+            statement = select(ScreenTime).where(ScreenTime.device_id == device_id)
+            result = await session.execute(statement)
+            screen_time = result.scalars().all()
+            return [st.model_dump() for st in screen_time]
+
+
+async def create_screen_time(device_id: int, app: str, website: str, duration: str, description: str, activity_date: str) -> Dict[str, Any]:
+    created_at = datetime.now()
+    async with session_local() as session:
+        # Convert string date to date object
+        from datetime import date
+        if isinstance(activity_date, str):
+            # Parse the date string (assuming YYYY-MM-DD format)
+            activity_date_obj = date.fromisoformat(activity_date)
+        else:
+            activity_date_obj = activity_date
+            
+        screen_time = ScreenTime(
+            device_id=device_id,
+            app=app,
+            website=website,
+            duration=duration,
+            description=description,
+            activity_date=activity_date_obj,
+            created_at=created_at
+        )
+        session.add(screen_time)
+        await session.commit()
+        await session.refresh(screen_time)
+        return screen_time.model_dump()
