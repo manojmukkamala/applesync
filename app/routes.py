@@ -118,9 +118,9 @@ async def get_message(guid: str):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/device/{device_id}/messages")
-async def get_messages_for_device(device_id: int):
+async def get_messages_for_device(device_id: int, guid: Optional[str] = None, startDate: Optional[str] = None, endDate: Optional[str] = None):
     try:
-        messages = await get_messages_by_device_id(device_id)
+        messages = await get_messages_by_device_id(device_id, guid, startDate, endDate)
         return messages
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -156,14 +156,14 @@ async def get_health_data(health_id: str):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/device/{device_id}/health")
-async def get_health_data_for_device(device_id: int, guid: Optional[str] = None):
+async def get_health_data_for_device(device_id: int, guid: Optional[str] = None, startDate: Optional[str] = None, endDate: Optional[str] = None):
     try:
         # First check if the device exists
         device = await get_device_by_id(device_id)
         if device is None:
             raise HTTPException(status_code=404, detail="Device not found")
         
-        health_data = await get_health_data_by_device_id(device_id, guid)
+        health_data = await get_health_data_by_device_id(device_id, guid, startDate, endDate)
         return health_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -203,14 +203,14 @@ async def get_screen_time(screen_time_id: str):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/device/{device_id}/screen-time")
-async def get_screen_time_for_device(device_id: int, app: Optional[str] = None):
+async def get_screen_time_for_device(device_id: int, app: Optional[str] = None, startDate: Optional[str] = None, endDate: Optional[str] = None):
     try:
         # First check if the device exists
         device = await get_device_by_id(device_id)
         if device is None:
             raise HTTPException(status_code=404, detail="Device not found")
         
-        screen_time = await get_screen_time_by_device_id(device_id, app)
+        screen_time = await get_screen_time_by_device_id(device_id, app, startDate, endDate)
         return screen_time
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

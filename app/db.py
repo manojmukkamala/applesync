@@ -91,7 +91,7 @@ async def get_message_by_guid(guid: str) -> Optional[Dict[str, Any]]:
         return message.model_dump() if message else None
 
 
-async def get_messages_by_device_id(device_id: int, guid: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+async def get_messages_by_device_id(device_id: int, guid: Optional[str] = None, startDate: Optional[str] = None, endDate: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
     async with session_local() as session:
         if guid:
             statement = select(Message).where(Message.device_id == device_id, Message.guid == guid)
@@ -100,6 +100,18 @@ async def get_messages_by_device_id(device_id: int, guid: Optional[str] = None) 
             return message.model_dump() if message else None
         else:
             statement = select(Message).where(Message.device_id == device_id)
+            
+            # Apply date filtering if startDate and/or endDate are provided
+            if startDate or endDate:
+
+                # Parse date strings to datetime objects for comparison
+                if startDate:
+                    start_date = datetime.strptime(startDate, '%Y-%m-%d')
+                    statement = statement.where(Message.date >= start_date)
+                if endDate:
+                    end_date = datetime.strptime(endDate, '%Y-%m-%d')
+                    statement = statement.where(Message.date <= end_date)
+            
             result = await session.execute(statement)
             messages = result.scalars().all()
             return [message.model_dump() for message in messages]
@@ -136,7 +148,7 @@ async def get_health_data_by_id(health_id: str) -> Optional[Dict[str, Any]]:
         return health_data.model_dump() if health_data else None
 
 
-async def get_health_data_by_device_id(device_id: int, guid: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+async def get_health_data_by_device_id(device_id: int, guid: Optional[str] = None, startDate: Optional[str] = None, endDate: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
     async with session_local() as session:
         if guid:
             statement = select(HealthData).where(HealthData.device_id == device_id, HealthData.id == guid)
@@ -145,6 +157,17 @@ async def get_health_data_by_device_id(device_id: int, guid: Optional[str] = Non
             return health_data.model_dump() if health_data else None
         else:
             statement = select(HealthData).where(HealthData.device_id == device_id)
+            
+            # Apply date filtering if startDate and/or endDate are provided
+            if startDate or endDate:
+                # Parse date strings to datetime objects for comparison
+                if startDate:
+                    start_date = datetime.strptime(startDate, '%Y-%m-%d')
+                    statement = statement.where(HealthData.startdate >= start_date)
+                if endDate:
+                    end_date = datetime.strptime(endDate, '%Y-%m-%d')
+                    statement = statement.where(HealthData.startdate <= end_date)
+            
             result = await session.execute(statement)
             health_data = result.scalars().all()
             return [data.model_dump() for data in health_data]
@@ -220,7 +243,7 @@ async def get_screen_time_by_id(screen_time_id: str) -> Optional[Dict[str, Any]]
         return screen_time.model_dump() if screen_time else None
 
 
-async def get_screen_time_by_device_id(device_id: int, app: Optional[str] = None) -> List[Dict[str, Any]]:
+async def get_screen_time_by_device_id(device_id: int, app: Optional[str] = None, startDate: Optional[str] = None, endDate: Optional[str] = None) -> List[Dict[str, Any]]:
     async with session_local() as session:
         if app:
             statement = select(ScreenTime).where(ScreenTime.device_id == device_id, ScreenTime.app == app)
@@ -229,6 +252,17 @@ async def get_screen_time_by_device_id(device_id: int, app: Optional[str] = None
             return screen_time.model_dump() if screen_time else None
         else:
             statement = select(ScreenTime).where(ScreenTime.device_id == device_id)
+            
+            # Apply date filtering if startDate and/or endDate are provided
+            if startDate or endDate:
+                # Parse date strings to date objects for comparison
+                if startDate:
+                    start_date = datetime.strptime(startDate, '%Y-%m-%d')
+                    statement = statement.where(ScreenTime.activity_date >= start_date)
+                if endDate:
+                    end_date = datetime.strptime(endDate, '%Y-%m-%d')
+                    statement = statement.where(ScreenTime.activity_date <= end_date)
+            
             result = await session.execute(statement)
             screen_time = result.scalars().all()
             return [st.model_dump() for st in screen_time]
