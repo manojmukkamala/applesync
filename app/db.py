@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from sqlmodel import select
 from app.models import User, Device, Message, HealthData, ScreenTime
@@ -109,7 +109,7 @@ async def get_messages_by_device_id(device_id: int, guid: Optional[str] = None, 
                     start_date = datetime.strptime(startDate, '%Y-%m-%d')
                     statement = statement.where(Message.date >= start_date)
                 if endDate:
-                    end_date = datetime.strptime(endDate, '%Y-%m-%d')
+                    end_date = datetime.strptime(endDate, '%Y-%m-%d') + timedelta(days=1)
                     statement = statement.where(Message.date <= end_date)
             
             result = await session.execute(statement)
@@ -165,7 +165,7 @@ async def get_health_data_by_device_id(device_id: int, guid: Optional[str] = Non
                     start_date = datetime.strptime(startDate, '%Y-%m-%d')
                     statement = statement.where(HealthData.startdate >= start_date)
                 if endDate:
-                    end_date = datetime.strptime(endDate, '%Y-%m-%d')
+                    end_date = datetime.strptime(endDate, '%Y-%m-%d') + timedelta(days=1)
                     statement = statement.where(HealthData.startdate <= end_date)
             
             result = await session.execute(statement)
@@ -257,10 +257,10 @@ async def get_screen_time_by_device_id(device_id: int, app: Optional[str] = None
             if startDate or endDate:
                 # Parse date strings to date objects for comparison
                 if startDate:
-                    start_date = datetime.strptime(startDate, '%Y-%m-%d')
+                    start_date = datetime.strptime(startDate, '%Y-%m-%d').date()
                     statement = statement.where(ScreenTime.activity_date >= start_date)
                 if endDate:
-                    end_date = datetime.strptime(endDate, '%Y-%m-%d')
+                    end_date = datetime.strptime(endDate, '%Y-%m-%d').date()
                     statement = statement.where(ScreenTime.activity_date <= end_date)
             
             result = await session.execute(statement)
