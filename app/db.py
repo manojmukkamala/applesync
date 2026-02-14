@@ -118,17 +118,21 @@ async def get_messages_by_device_id(
                         tzinfo=UTC
                     )
                     # Convert datetime back to string for comparison with Message.date (which is str)
-                    statement = statement.where(Message.date >= start_date_obj.strftime('%Y-%m-%d'))
+                    statement = statement.where(
+                        Message.date >= start_date_obj.strftime('%Y-%m-%d')
+                    )
                 if end_date:
                     end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').replace(
                         tzinfo=UTC
                     ) + timedelta(days=1)
                     # Convert datetime back to string for comparison with Message.date (which is str)
-                    statement = statement.where(Message.date <= end_date_obj.strftime('%Y-%m-%d'))
+                    statement = statement.where(
+                        Message.date <= end_date_obj.strftime('%Y-%m-%d')
+                    )
 
-            result = await session.execute(statement)
-            messages = result.scalars().all()
-            return [message.model_dump() for message in messages]
+            message_results = await session.execute(statement)
+            message_results_all = message_results.scalars().all()
+            return [message.model_dump() for message in message_results_all]
 
 
 async def create_message(
@@ -205,9 +209,9 @@ async def get_health_data_by_device_id(
                     ) + timedelta(days=1)
                     statement = statement.where(HealthData.startdate <= end_date_obj)
 
-            result = await session.execute(statement)
-            health_data = result.scalars().all()
-            return [data.model_dump() for data in health_data]
+            health_data_results = await session.execute(statement)
+            health_data_results_all = health_data_results.scalars().all()
+            return [data.model_dump() for data in health_data_results_all]
 
 
 async def create_health_data(
@@ -236,7 +240,7 @@ async def create_health_data(
     )
 
     result = await session.execute(stmt)
-    existing = result.one_or_none()
+    existing = result.scalars().first()
 
     # 2) UPDATE IF EXISTS
     if existing:
@@ -328,9 +332,9 @@ async def get_screen_time_by_device_id(
                         ScreenTime.activity_date <= end_date_obj
                     )
 
-            result = await session.execute(statement)
-            screen_time = result.scalars().all()
-            return [st.model_dump() for st in screen_time]
+            screen_time_results = await session.execute(statement)
+            screen_time_results_all = screen_time_results.scalars().all()
+            return [st.model_dump() for st in screen_time_results_all]
 
 
 async def create_screen_time(

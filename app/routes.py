@@ -12,7 +12,7 @@ from .security import get_api_key
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import database functions
-from db import (
+from app.db import (
     create_device,
     create_health_data,
     create_message,
@@ -260,8 +260,8 @@ async def create_health_data_for_device(
             health_data.name,
             health_data.source,
             health_data.duration,
-            health_data.startdate,
-            health_data.enddate,
+            health_data.startdate.isoformat(),
+            health_data.enddate.isoformat(),
             health_data.unit,
             health_data.value,
             health_data.type,
@@ -315,7 +315,7 @@ async def create_screen_time_for_device(
             screen_time.website,
             screen_time.duration,
             screen_time.description,
-            screen_time.activity_date,
+            screen_time.activity_date.isoformat(),
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Database error: {e!s}') from e
