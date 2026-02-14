@@ -72,6 +72,8 @@ select = [
 ignore = [
     "E501",  # line too long, handled by formatter
     "PLR",   # design related pylint rules
+    "Q000",  # Single quotes, handled by formatter
+    "Q003",  # Triple quotes, handled by formatter
 ]
 
 [tool.ruff.format]

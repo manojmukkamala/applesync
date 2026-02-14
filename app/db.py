@@ -9,11 +9,12 @@ from sqlmodel import select
 from app.models import Device, HealthData, Message, ScreenTime, User
 
 # Global database path
-DB_PATH = "./data/messages.db"
+DB_PATH = './data/messages.db'
 
 # Create the async database engine
-engine = create_async_engine(f"sqlite+aiosqlite:///{DB_PATH}", echo=True)
+engine = create_async_engine(f'sqlite+aiosqlite:///{DB_PATH}', echo=True)
 session_local = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 
 async def init_db() -> None:
     """Initialize the database and create tables if they don't exist"""
@@ -92,10 +93,17 @@ async def get_message_by_guid(guid: str) -> dict[str, Any] | None:
         return message.model_dump() if message else None
 
 
-async def get_messages_by_device_id(device_id: int, guid: str | None = None, start_date: str | None = None, end_date: str | None = None) -> list[dict[str, Any]] | None:
+async def get_messages_by_device_id(
+    device_id: int,
+    guid: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> list[dict[str, Any]] | None:
     async with session_local() as session:
         if guid:
-            statement = select(Message).where(Message.device_id == device_id, Message.guid == guid)
+            statement = select(Message).where(
+                Message.device_id == device_id, Message.guid == guid
+            )
             result = await session.execute(statement)
             message = result.scalars().first()
             return message.model_dump() if message else None
@@ -104,13 +112,16 @@ async def get_messages_by_device_id(device_id: int, guid: str | None = None, sta
 
             # Apply date filtering if start_date and/or end_date are provided
             if start_date or end_date:
-
                 # Parse date strings to datetime objects for comparison
                 if start_date:
-                    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=UTC)
+                    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').replace(
+                        tzinfo=UTC
+                    )
                     statement = statement.where(Message.date >= start_date_obj)
                 if end_date:
-                    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=UTC) + timedelta(days=1)
+                    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').replace(
+                        tzinfo=UTC
+                    ) + timedelta(days=1)
                     statement = statement.where(Message.date <= end_date_obj)
 
             result = await session.execute(statement)
@@ -118,7 +129,18 @@ async def get_messages_by_device_id(device_id: int, guid: str | None = None, sta
             return [message.model_dump() for message in messages]
 
 
-async def create_message(guid: str, conversation_guid: str, conversation_conversation: str, conversation_display_name: str, date: str, sender_full_name: str, sender_phone_numbers: str, msg_type: str, body: str, device_id: int) -> dict[str, Any]:
+async def create_message(
+    guid: str,
+    conversation_guid: str,
+    conversation_conversation: str,
+    conversation_display_name: str,
+    date: str,
+    sender_full_name: str,
+    sender_phone_numbers: str,
+    msg_type: str,
+    body: str,
+    device_id: int,
+) -> dict[str, Any]:
     created_at = datetime.now(UTC)
     async with session_local() as session:
         message = Message(
@@ -132,7 +154,7 @@ async def create_message(guid: str, conversation_guid: str, conversation_convers
             type=msg_type,
             body=body,
             device_id=device_id,
-            created_at=created_at
+            created_at=created_at,
         )
         session.add(message)
         await session.commit()
@@ -149,10 +171,17 @@ async def get_health_data_by_id(health_id: str) -> dict[str, Any] | None:
         return health_data.model_dump() if health_data else None
 
 
-async def get_health_data_by_device_id(device_id: int, guid: str | None = None, start_date: str | None = None, end_date: str | None = None) -> list[dict[str, Any]] | None:
+async def get_health_data_by_device_id(
+    device_id: int,
+    guid: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> list[dict[str, Any]] | None:
     async with session_local() as session:
         if guid:
-            statement = select(HealthData).where(HealthData.device_id == device_id, HealthData.id == guid)
+            statement = select(HealthData).where(
+                HealthData.device_id == device_id, HealthData.id == guid
+            )
             result = await session.execute(statement)
             health_data = result.scalars().first()
             return health_data.model_dump() if health_data else None
@@ -163,10 +192,14 @@ async def get_health_data_by_device_id(device_id: int, guid: str | None = None, 
             if start_date or end_date:
                 # Parse date strings to datetime objects for comparison
                 if start_date:
-                    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=UTC)
+                    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').replace(
+                        tzinfo=UTC
+                    )
                     statement = statement.where(HealthData.startdate >= start_date_obj)
                 if end_date:
-                    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=UTC) + timedelta(days=1)
+                    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').replace(
+                        tzinfo=UTC
+                    ) + timedelta(days=1)
                     statement = statement.where(HealthData.startdate <= end_date_obj)
 
             result = await session.execute(statement)
@@ -174,20 +207,29 @@ async def get_health_data_by_device_id(device_id: int, guid: str | None = None, 
             return [data.model_dump() for data in health_data]
 
 
-async def create_health_data(device_id: int, name: str, source: str, duration: str, startdate: str, enddate: str, unit: str, value: str, data_type: str) -> dict[str, Any]:
+async def create_health_data(
+    device_id: int,
+    name: str,
+    source: str,
+    duration: str,
+    startdate: str,
+    enddate: str,
+    unit: str,
+    value: str,
+    data_type: str,
+) -> dict[str, Any]:
     created_at = datetime.now(UTC)
 
     async with session_local() as session:
-
-     # Normalize dates
-     startdate_obj = datetime.fromisoformat(startdate)
-     enddate_obj = datetime.fromisoformat(enddate)
+        # Normalize dates
+        startdate_obj = datetime.fromisoformat(startdate)
+        enddate_obj = datetime.fromisoformat(enddate)
 
     # 1) CHECK IF EXISTS (based on unique constraint)
     stmt = select(HealthData).where(
         HealthData.device_id == device_id,
         HealthData.type == data_type,
-        HealthData.startdate == startdate_obj
+        HealthData.startdate == startdate_obj,
     )
 
     result = await session.execute(stmt)
@@ -221,7 +263,7 @@ async def create_health_data(device_id: int, name: str, source: str, duration: s
             unit=unit,
             value=value,
             type=data_type,
-            created_at=created_at
+            created_at=created_at,
         )
         session.add(hd)
         await session.commit()
@@ -229,8 +271,8 @@ async def create_health_data(device_id: int, name: str, source: str, duration: s
 
     # Prepare output
     data = hd.model_dump()
-    data["startdate"] = hd.startdate.isoformat()
-    data["enddate"] = hd.enddate.isoformat()
+    data['startdate'] = hd.startdate.isoformat()
+    data['enddate'] = hd.enddate.isoformat()
 
     return data
 
@@ -244,10 +286,17 @@ async def get_screen_time_by_id(screen_time_id: str) -> dict[str, Any] | None:
         return screen_time.model_dump() if screen_time else None
 
 
-async def get_screen_time_by_device_id(device_id: int, app: str | None = None, start_date: str | None = None, end_date: str | None = None) -> list[dict[str, Any]]:
+async def get_screen_time_by_device_id(
+    device_id: int,
+    app: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> list[dict[str, Any]]:
     async with session_local() as session:
         if app:
-            statement = select(ScreenTime).where(ScreenTime.device_id == device_id, ScreenTime.app == app)
+            statement = select(ScreenTime).where(
+                ScreenTime.device_id == device_id, ScreenTime.app == app
+            )
             result = await session.execute(statement)
             screen_time = result.scalars().first()
             return screen_time.model_dump() if screen_time else None
@@ -258,18 +307,33 @@ async def get_screen_time_by_device_id(device_id: int, app: str | None = None, s
             if start_date or end_date:
                 # Parse date strings to date objects for comparison
                 if start_date:
-                    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=UTC)
-                    statement = statement.where(ScreenTime.activity_date >= start_date_obj)
+                    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').replace(
+                        tzinfo=UTC
+                    )
+                    statement = statement.where(
+                        ScreenTime.activity_date >= start_date_obj
+                    )
                 if end_date:
-                    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=UTC) + timedelta(days=1)
-                    statement = statement.where(ScreenTime.activity_date <= end_date_obj)
+                    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').replace(
+                        tzinfo=UTC
+                    ) + timedelta(days=1)
+                    statement = statement.where(
+                        ScreenTime.activity_date <= end_date_obj
+                    )
 
             result = await session.execute(statement)
             screen_time = result.scalars().all()
             return [st.model_dump() for st in screen_time]
 
 
-async def create_screen_time(device_id: int, app: str, website: str, duration: str, description: str, activity_date: str) -> dict[str, Any]:
+async def create_screen_time(
+    device_id: int,
+    app: str,
+    website: str,
+    duration: str,
+    description: str,
+    activity_date: str,
+) -> dict[str, Any]:
     created_at = datetime.now(UTC)
     async with session_local() as session:
         if isinstance(activity_date, str):
@@ -285,7 +349,7 @@ async def create_screen_time(device_id: int, app: str, website: str, duration: s
             duration=duration,
             description=description,
             activity_date=activity_date_obj,
-            created_at=created_at
+            created_at=created_at,
         )
         session.add(screen_time)
         await session.commit()
