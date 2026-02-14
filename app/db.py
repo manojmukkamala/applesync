@@ -307,16 +307,20 @@ async def get_screen_time_by_device_id(
             if start_date or end_date:
                 # Parse date strings to date objects for comparison
                 if start_date:
-                    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').replace(
-                        tzinfo=UTC
+                    start_date_obj = (
+                        datetime.strptime(start_date, '%Y-%m-%d')
+                        .replace(tzinfo=UTC)
+                        .date()
                     )
                     statement = statement.where(
                         ScreenTime.activity_date >= start_date_obj
                     )
                 if end_date:
-                    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').replace(
-                        tzinfo=UTC
-                    ) + timedelta(days=1)
+                    end_date_obj = (
+                        datetime.strptime(end_date, '%Y-%m-%d')
+                        .replace(tzinfo=UTC)
+                        .date()
+                    )
                     statement = statement.where(
                         ScreenTime.activity_date <= end_date_obj
                     )

@@ -211,3 +211,4 @@ data/
 
 # Custom
 client.py
+.DS_Store
