@@ -24,6 +24,14 @@ export API_KEY=super-secret
 uv sync && uv run main.py
 ```
 
+#### Linting & Code Formatting
+
+```bash
+ruff check app
+ruff format app
+mypy app
+```
+
 ## CI/CD
 
 The application is automatically built and published to GitHub Container Registry on every tagged release on the main branch.

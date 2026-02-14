@@ -92,17 +92,17 @@ curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/message
 
 ### Get messages within a date range
 ```
-GET /device/{device_id}/messages?startDate=2023-01-01&endDate=2023-12-31
+GET /device/{device_id}/messages?start_date=2023-01-01&end_date=2023-12-31
 ```
 
 ### Example curl command
 ```
-curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/messages?startDate=2023-01-01&endDate=2023-12-31"
+curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/messages?start_date=2026-01-01&end_date=2026-01-01"
 ```
 
 ### Get messages within a date range with specific guid
 ```
-GET /device/{device_id}/messages?startDate=2023-01-01&endDate=2023-12-31&guid=example-guid
+GET /device/{device_id}/messages?start_date=2023-01-01&end_date=2023-12-31&guid=example-guid
 ```
 
 ### Create a new message
@@ -145,17 +145,17 @@ curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/health"
 
 ### Get health data within a date range
 ```
-GET /device/{device_id}/health?startDate=2023-01-01&endDate=2023-12-31
+GET /device/{device_id}/health?start_date=2023-01-01&end_date=2023-12-31
 ```
 
 ### Example curl command
 ```
-curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/health?startDate=2023-01-01&endDate=2023-12-31"
+curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/health?start_date=2025-12-01&end_date=2025-12-31"
 ```
 
 ### Get health data within a date range with specific guid
 ```
-GET /device/{device_id}/health?startDate=2023-01-01&endDate=2023-12-31&guid=example-guid
+GET /device/{device_id}/health?start_date=2023-01-01&end_date=2023-12-31&guid=example-guid
 ```
 
 ### Create new health data
@@ -197,17 +197,17 @@ curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/screen-
 
 ### Get screen time within a date range
 ```
-GET /device/{device_id}/screen-time?startDate=2023-01-01&endDate=2023-12-31
+GET /device/{device_id}/screen-time?start_date=2023-01-01&end_date=2023-12-31
 ```
 
 ### Example curl command
 ```
-curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/screen-time?startDate=2023-01-01&endDate=2023-12-31"
+curl -H "x-api-key: super-secret" -X GET "http://localhost:8000/device/1/screen-time?start_date=2026-02-11&end_date=2026-02-11"
 ```
 
 ### Get screen time within a date range for a specific app
 ```
-GET /device/{device_id}/screen-time?startDate=2023-01-01&endDate=2023-12-31&app=example-app
+GET /device/{device_id}/screen-time?start_date=2023-01-01&end_date=2023-12-31&app=example-app
 ```
 
 ### Create new screen time
