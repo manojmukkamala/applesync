@@ -106,7 +106,7 @@ async def get_messages_by_device_id(
             )
             result = await session.execute(statement)
             message = result.scalars().first()
-            return message.model_dump() if message else None
+            return [message.model_dump()] if message else None
         else:
             statement = select(Message).where(Message.device_id == device_id)
 
@@ -117,12 +117,14 @@ async def get_messages_by_device_id(
                     start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').replace(
                         tzinfo=UTC
                     )
-                    statement = statement.where(Message.date >= start_date_obj)
+                    # Convert datetime back to string for comparison with Message.date (which is str)
+                    statement = statement.where(Message.date >= start_date_obj.strftime('%Y-%m-%d'))
                 if end_date:
                     end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').replace(
                         tzinfo=UTC
                     ) + timedelta(days=1)
-                    statement = statement.where(Message.date <= end_date_obj)
+                    # Convert datetime back to string for comparison with Message.date (which is str)
+                    statement = statement.where(Message.date <= end_date_obj.strftime('%Y-%m-%d'))
 
             result = await session.execute(statement)
             messages = result.scalars().all()
@@ -159,7 +161,8 @@ async def create_message(
         session.add(message)
         await session.commit()
         await session.refresh(message)
-        return message.model_dump()
+        result = message.model_dump()
+        return result
 
 
 # HealthData database functions
@@ -176,7 +179,7 @@ async def get_health_data_by_device_id(
     guid: str | None = None,
     start_date: str | None = None,
     end_date: str | None = None,
-) -> list[dict[str, Any]] | None:
+) -> list[dict[str, Any]]:
     async with session_local() as session:
         if guid:
             statement = select(HealthData).where(
@@ -184,7 +187,7 @@ async def get_health_data_by_device_id(
             )
             result = await session.execute(statement)
             health_data = result.scalars().first()
-            return health_data.model_dump() if health_data else None
+            return [health_data.model_dump()] if health_data else []
         else:
             statement = select(HealthData).where(HealthData.device_id == device_id)
 
@@ -242,7 +245,7 @@ async def create_health_data(
         existing.duration = duration
         existing.enddate = enddate_obj
         existing.value = value
-        existing.type = type
+        existing.type = data_type
         existing.created_at = created_at
 
         session.add(existing)
@@ -299,7 +302,7 @@ async def get_screen_time_by_device_id(
             )
             result = await session.execute(statement)
             screen_time = result.scalars().first()
-            return screen_time.model_dump() if screen_time else None
+            return [screen_time.model_dump()] if screen_time else []
         else:
             statement = select(ScreenTime).where(ScreenTime.device_id == device_id)
 
