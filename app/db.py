@@ -219,8 +219,8 @@ async def create_health_data(
     name: str,
     source: str,
     duration: str,
-    startdate: str,
-    enddate: str,
+    startdate: datetime,
+    enddate: datetime,
     unit: str,
     value: str,
     data_type: str,
@@ -229,8 +229,15 @@ async def create_health_data(
 
     async with session_local() as session:
         # Normalize dates
-        startdate_obj = datetime.fromisoformat(startdate)
-        enddate_obj = datetime.fromisoformat(enddate)
+        if isinstance(startdate, str):
+            startdate_obj = datetime.fromisoformat(startdate)
+        else:
+            startdate_obj = startdate
+
+        if isinstance(enddate, str):
+            enddate_obj = datetime.fromisoformat(enddate)
+        else:
+            enddate_obj = enddate
 
     # 1) CHECK IF EXISTS (based on unique constraint)
     stmt = select(HealthData).where(
@@ -343,7 +350,7 @@ async def create_screen_time(
     website: str,
     duration: str,
     description: str,
-    activity_date: str,
+    activity_date: date,
 ) -> dict[str, Any]:
     created_at = datetime.now(UTC)
     async with session_local() as session:
