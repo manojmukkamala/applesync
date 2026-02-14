@@ -1,17 +1,19 @@
-from sqlmodel import SQLModel, Field, UniqueConstraint
-from datetime import datetime, date
-from typing import Optional
+#!/usr/bin/env python3
 import uuid
+from datetime import date, datetime
+
+from sqlmodel import Field, SQLModel, UniqueConstraint
+
 
 class User(SQLModel, table=True):
-    user_id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int | None = Field(default=None, primary_key=True)
     user_name: str = Field(unique=True, nullable=False)
     created_at: datetime
 
 class Device(SQLModel, table=True):
-    device_id: Optional[int] = Field(default=None, primary_key=True)
+    device_id: int | None = Field(default=None, primary_key=True)
     device_name: str = Field(unique=True, nullable=False)
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    user_id: int | None = Field(default=None, foreign_key="user.user_id")
     created_at: datetime
 
 class Message(SQLModel, table=True):
