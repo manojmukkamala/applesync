@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security
+from fastapi.middleware.cors import CORSMiddleware
+from .security import get_api_key
 from typing import Optional
 import os
 import sys
@@ -26,7 +28,21 @@ from db import (
     create_screen_time
 )
 
-app = FastAPI()
+app = FastAPI(
+    title="Applesync API",
+    description="API for iOS data synchronization",
+    version="4.0.0",
+    dependencies=[Security(get_api_key)],
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["127.0.0.1"],  # In production, restrict this to specific origins
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 
 @app.on_event("startup")

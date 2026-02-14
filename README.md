@@ -1,5 +1,5 @@
 # applesync
-A REST API server to store data (Messages and Health app etc) fetched from Apple devices
+A REST API server to store data (Messages and Health app etc) fetched from Apple devices using Apple Shortcuts
 
 ## Docker Deployment
 
@@ -10,12 +10,19 @@ You can run the application using Docker:
 docker pull ghcr.io/manojmukkamala/applesync:latest
 
 # Run the container
-docker run -p 8000:8000 ghcr.io/manojmukkamala/applesync:latest
+docker run -p 8000:8000 -e API_KEY="super-secret" ghcr.io/manojmukkamala/applesync:latest
 ```
 
 The application will be accessible at `http://localhost:8000`.
 
 FastAPI swagger docs will be accessible at `http://localhost:8000/docs`.
+
+## Local Development
+
+```bash
+export API_KEY=super-secret
+uv sync && uv run main.py
+```
 
 ## CI/CD
 
